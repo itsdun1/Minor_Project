@@ -3,13 +3,16 @@
 var mongoose = require("mongoose")
 
 var hike = mongoose.model("hike",{
-    month:{
+    time:{
         type:String,
     },
-    petrol:{
+    legend1:{
         type:Number
     }
-    ,diesel:{
+    ,legend2:{
+        type:Number
+    },
+    legend3:{
         type:Number
     }
 })

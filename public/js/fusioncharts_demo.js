@@ -14,7 +14,7 @@ $(function(){
       var chartProperties = {
         "caption": "Variation of Petrol and Diesel price in Bangalore",
         "numberprefix": "Rs",
-        "xAxisName": "Month",
+        "xAxisName": "time",
         "yAxisName": "Price"
       };
 
