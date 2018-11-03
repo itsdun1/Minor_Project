@@ -15,7 +15,12 @@ $(function(){
         "caption": "Variation of Petrol and Diesel price in Bangalore",
         "numberprefix": "Rs",
         "xAxisName": "time",
-        "yAxisName": "Price"
+        "yAxisName": "Price",
+        "exportEnabled": "1",
+        "exportMode":"auto",
+        "exportShowMenuItem":"1",
+        "exportFileName":"getEasyGraph",
+        "theme":"Fusion"
       };
 
       var categoriesArray = [{
@@ -32,7 +37,8 @@ $(function(){
           chart: chartProperties,
           categories : categoriesArray,
           dataset : data["dataset"]
-        }
+        },
+     
       });
       lineChart.render();
     }

@@ -1,47 +1,75 @@
 var express = require("express");
 var mongoose = require("./database_connection/conn")
 var {hike} = require("./models/graph");
+var User = require("./models/user")
+var bodyParser = require("body-parser")
+var passport = require("passport")
+var passportLocal = require("passport-local")
+var passportLocalMongo = require("passport-local-mongoose")
+var app = express();
+app.use(bodyParser.urlencoded({extended:true}));
 
-var app = express()
 
-hike.insertMany(
-    [
-      {
-        "time": "Jan", "legend1" : 64.72, "legend2": 52.49,"legend3": 38.33
-      },
-      {
-        "time": "Feb", "legend1" : 62.81, "legend2": 50.72,"legend3": 38.33
-      },
-      {
-        "time": "Mar", "legend1" : 66.18, "legend2": 54.06,"legend3": 37.33
-      },
-      {
-        "time": "Apr", "legend1" : 65.17, "legend2": 51.74,"legend3": 58.33
-      },
-      {
-        "time": "May", "legend1" : 72.94, "legend2": 57.23,"legend3": 34.33
-      },
-      {
-        "time": "Jun", "legend1" : 73.77, "legend2": 55.83,"legend3": 47.33
-      },
-      {
-        "time": "Jul", "legend1" : 70.7, "legend2": 52.59,"legend3": 48.49
-      },
-      {
-        "time": "Aug", "legend1" : 66.72, "legend2": 47.54,"legend3": 57.54
-      },
-      {
-        "time": "Sept", "legend1" : 64.61, "legend2": 47.02,"legend3": 56.4
-      }
-    ]).then((data)=>{
-        if(data)
-        {
-            console.log(data)
-        }
 
-    }).catch((e)=>{
-        console.log(e)
-    })
+app.use(require("express-session")({
+    secret: "this the bad 2",
+    resave: false,
+    saveUninitialized: false
+}));
+
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new passportLocal(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+
+
+
+
+
+
+
+
+// hike.insertMany(
+//     [
+//       {
+//         "time": "Jan", "legend1" : 64.72, "legend2": 52.49,"legend3": 38.33
+//       },
+//       {
+//         "time": "Feb", "legend1" : 62.81, "legend2": 50.72,"legend3": 38.33
+//       },
+//       {
+//         "time": "Mar", "legend1" : 66.18, "legend2": 54.06,"legend3": 37.33
+//       },
+//       {
+//         "time": "Apr", "legend1" : 65.17, "legend2": 51.74,"legend3": 58.33
+//       },
+//       {
+//         "time": "May", "legend1" : 72.94, "legend2": 57.23,"legend3": 34.33
+//       },
+//       {
+//         "time": "Jun", "legend1" : 73.77, "legend2": 55.83,"legend3": 47.33
+//       },
+//       {
+//         "time": "Jul", "legend1" : 70.7, "legend2": 52.59,"legend3": 48.49
+//       },
+//       {
+//         "time": "Aug", "legend1" : 66.72, "legend2": 47.54,"legend3": 57.54
+//       },
+//       {
+//         "time": "Sept", "legend1" : 64.61, "legend2": 47.02,"legend3": 56.4
+//       }
+//     ]).then((data)=>{
+//         if(data)
+//         {
+//             console.log(data)
+//         }
+
+//     }).catch((e)=>{
+//         console.log(e)
+//     })
 
 
     // console.log("server is running");
@@ -136,9 +164,57 @@ app.get("/getchart",(req,res)=>{
     res.render("chart")
 })
 
+app.get("/register",(req,res)=>{
+
+    res.render("register.ejs")
+})
+app.post("/register",(req,res)=>{
+
+    User.register(new User({username:req.body.username}),req.body.password,(err,data)=>{
+
+        if(err)
+        {
+            console.log(err)
+            return res.render(register.ejs)
+        }
+        passport.authenticate("local")(req,res,function(){
+            res.redirect("/secret")
+            
+        })
+    })
+})
 
 
+app.get("/login",(req,res)=>{
 
+    res.render("login.ejs")
+})
+
+app.post("/login",passport.authenticate("local",{
+    successRedirect:"/secret",
+    failureRedirect:"/login"
+}),(req,res)=>{
+
+
+})
+app.get("/secret",isLoggedIn,(req,res)=>{
+    res.render("secret.ejs")
+    
+    })
+
+    app.get("/logout",(req,res)=>{
+        req.logout();
+        res.redirect("/")
+    })
+
+function isLoggedIn(req ,res ,next)
+{
+    if(req.isAuthenticated())
+    {
+        return next();
+    }
+    res.redirect("/login");
+}
 
 app.listen( 3000,()=>
 {
