@@ -24,6 +24,11 @@ passport.use(new passportLocal(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+app.use(function(req,res,next){
+    res.locals.currentUser = req.user;
+    
+    next();
+  })
 
 
 
@@ -35,31 +40,31 @@ passport.deserializeUser(User.deserializeUser());
 // hike.insertMany(
 //     [
 //       {
-//         "time": "Jan", "legend1" : 64.72, "legend2": 52.49,"legend3": 38.33
+//         "username":"itsdun", "time": "Jan", "legend1" : 64.72, "legend2": 52.49,"legend3": 38.33
 //       },
 //       {
-//         "time": "Feb", "legend1" : 62.81, "legend2": 50.72,"legend3": 38.33
+//        "username":"itsdun", "time": "Feb", "legend1" : 62.81, "legend2": 50.72,"legend3": 38.33
 //       },
 //       {
-//         "time": "Mar", "legend1" : 66.18, "legend2": 54.06,"legend3": 37.33
+//         "username":"itsdun","time": "Mar", "legend1" : 66.18, "legend2": 54.06,"legend3": 37.33
 //       },
 //       {
-//         "time": "Apr", "legend1" : 65.17, "legend2": 51.74,"legend3": 58.33
+//        "username":"itsdun", "time": "Apr", "legend1" : 65.17, "legend2": 51.74,"legend3": 58.33
 //       },
 //       {
-//         "time": "May", "legend1" : 72.94, "legend2": 57.23,"legend3": 34.33
+//        "username":"itsdun", "time": "May", "legend1" : 72.94, "legend2": 57.23,"legend3": 34.33
 //       },
 //       {
-//         "time": "Jun", "legend1" : 73.77, "legend2": 55.83,"legend3": 47.33
+//         "username":"itsdun","time": "Jun", "legend1" : 73.77, "legend2": 55.83,"legend3": 47.33
 //       },
 //       {
-//         "time": "Jul", "legend1" : 70.7, "legend2": 52.59,"legend3": 48.49
+//        "username":"itsdun", "time": "Jul", "legend1" : 70.7, "legend2": 52.59,"legend3": 48.49
 //       },
 //       {
-//         "time": "Aug", "legend1" : 66.72, "legend2": 47.54,"legend3": 57.54
+//        "username":"itsdun", "time": "Aug", "legend1" : 66.72, "legend2": 47.54,"legend3": 57.54
 //       },
 //       {
-//         "time": "Sept", "legend1" : 64.61, "legend2": 47.02,"legend3": 56.4
+//        "username":"itsdun", "time": "Sept", "legend1" : 64.61, "legend2": 47.02,"legend3": 56.4
 //       }
 //     ]).then((data)=>{
 //         if(data)
@@ -75,10 +80,10 @@ passport.deserializeUser(User.deserializeUser());
     // console.log("server is running");
 
 
-function getData(responceObj)
+function getData(responceObj,username1)
 {
-hike.find({}).then((data)=>{
-
+hike.find({username:username1}).then((data)=>{
+    
     if(data)
     {
         // console.log(data)
@@ -155,8 +160,9 @@ app.get('/getgraphs',(req,res)=>{
     res.render("commonforall.ejs")
 })
 
-app.get("/fuelPrices",(req,res)=>{
-   getData(res);
+app.get("/fuelPrices",isLoggedIn,(req,res)=>{
+    
+   getData(res,res.locals.currentUser.username);
 
 })
 
@@ -175,7 +181,7 @@ app.post("/register",(req,res)=>{
         if(err)
         {
             console.log(err)
-            return res.render(register.ejs)
+            return res.render("register.ejs")
         }
         passport.authenticate("local")(req,res,function(){
             res.redirect("/secret")
@@ -190,14 +196,41 @@ app.get("/login",(req,res)=>{
     res.render("login.ejs")
 })
 
-app.post("/login",passport.authenticate("local",{
-    successRedirect:"/secret",
-    failureRedirect:"/login"
-}),(req,res)=>{
+app.post("/login",(req,res,next)=>{
 
+passport.authenticate("local",(err,user,info)=>{
 
-})
+    if(err)
+    {
+        return(next(err))
+    }
+    if(!user)
+    {
+        return res.redirect("/login")
+    }
+    req.logIn(user,function(err){
+        if(err)
+        {
+            return next(err)
+        }
+        User.find({username:user.username}).then((data)=>{
+            if(data)
+            {
+                console.log(data)
+                return res.redirect('/secret/'+data[0]._id)
+            }
+        }).catch((e)=>{
+            return next(e)
+        })
+        
+    })
+
+})(req,res,next);
+});
 app.get("/secret",isLoggedIn,(req,res)=>{
+    
+
+  
     res.render("secret.ejs")
     
     })
@@ -206,6 +239,66 @@ app.get("/secret",isLoggedIn,(req,res)=>{
         req.logout();
         res.redirect("/")
     })
+
+
+
+app.get("/secret/:id",isLoggedIn,(req,res)=>{
+
+
+    
+    User.findById(req.params.id).then((data)=>{
+        if(data)
+        {
+            var username1 = data.username;
+            // console.log(username1)
+            console.log(res.locals.currentUser.username)
+            hike.find({username:res.locals.currentUser.username}).then((data1)=>{
+                if(data1)
+                {   
+                    dataset = data1
+                    console.log(data1)
+                }
+              
+            }).catch((e)=>{
+                console.log(e)
+                res.redirect("/")
+            })
+        }
+       
+      
+        
+
+    }).catch((e)=>{
+        console.log(e)
+        res.redirect("/")
+    })
+    console.log(req.params.id);
+    res.render("myprofile.ejs")
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function isLoggedIn(req ,res ,next)
 {

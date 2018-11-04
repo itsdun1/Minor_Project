@@ -3,6 +3,9 @@
 var mongoose = require("mongoose")
 
 var hike = mongoose.model("hike",{
+    username:{
+        type:String
+    },
     time:{
         type:String,
     },
