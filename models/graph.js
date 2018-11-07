@@ -17,7 +17,8 @@ var hike = mongoose.model("hike",{
     },
     legend3:{
         type:Number
-    }
+    },
+    subname:String
 })
 
 module.exports = {hike}

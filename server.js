@@ -6,6 +6,8 @@ var bodyParser = require("body-parser")
 var passport = require("passport")
 var passportLocal = require("passport-local")
 var passportLocalMongo = require("passport-local-mongoose")
+var {graph} = require("./models/graph_info")
+var {active} = require("./models/activelist")
 var app = express();
 app.use(bodyParser.urlencoded({extended:true}));
 
@@ -26,13 +28,50 @@ passport.deserializeUser(User.deserializeUser());
 
 app.use(function(req,res,next){
     res.locals.currentUser = req.user;
+    res.locals.getG = "aaaa"
     
     next();
   })
 
+//   active.insertMany({
+//       username:"itsdun",
+      
+//   })
 
+//   graph.findOneAndUpdate(
+//     { username: "itsdun" }, 
+//     { $push: { allGraphs: "the second" } },
+//    function (error, success) {
+//          if (error) {
+//              console.log(error);
+//          } else {
+//              console.log(success);
+//          }
+//      });
 
+// User.updateOne({currentActive:"thefirst"}).then((data)=>{
+//     if(data)
+//     {
+//         console.log(data)
+//     }
+// }).catch((e)=>{
+//     console.log(e)
+// })
 
+// graph.insertMany({
+//     username:"itsdun",
+//     legend1_name:"petrol",
+//     legend2_name:"disel",
+//     legend3_name:"rockel",
+//     allGraphs:["thefirst"]
+// }).then((data)=>{
+//     if(data)
+//     {
+//         console.log(data)
+//     }
+// }).catch((e)=>{
+//     console.log(e)
+// })
 
 
 
@@ -40,31 +79,31 @@ app.use(function(req,res,next){
 // hike.insertMany(
 //     [
 //       {
-//         "username":"itsdun", "time": "Jan", "legend1" : 64.72, "legend2": 52.49,"legend3": 38.33
+//         "username":"itsdun", "time": "Jan", "legend1" : 64.72, "legend2": 52.49,"legend3": 38.33 ,"subname":"thefirst"
 //       },
 //       {
-//        "username":"itsdun", "time": "Feb", "legend1" : 62.81, "legend2": 50.72,"legend3": 38.33
+//        "username":"itsdun", "time": "Feb", "legend1" : 62.81, "legend2": 50.72,"legend3": 38.33 ,"subname":"thefirst"
 //       },
 //       {
-//         "username":"itsdun","time": "Mar", "legend1" : 66.18, "legend2": 54.06,"legend3": 37.33
+//         "username":"itsdun","time": "Mar", "legend1" : 66.18, "legend2": 54.06,"legend3": 37.33 ,"subname":"thefirst"
 //       },
 //       {
-//        "username":"itsdun", "time": "Apr", "legend1" : 65.17, "legend2": 51.74,"legend3": 58.33
+//        "username":"itsdun", "time": "Apr", "legend1" : 65.17, "legend2": 51.74,"legend3": 58.33 ,"subname":"thefirst"
 //       },
 //       {
-//        "username":"itsdun", "time": "May", "legend1" : 72.94, "legend2": 57.23,"legend3": 34.33
+//        "username":"itsdun", "time": "May", "legend1" : 72.94, "legend2": 57.23,"legend3": 34.33 ,"subname":"thefirst"
 //       },
 //       {
-//         "username":"itsdun","time": "Jun", "legend1" : 73.77, "legend2": 55.83,"legend3": 47.33
+//         "username":"itsdun","time": "Jun", "legend1" : 73.77, "legend2": 55.83,"legend3": 47.33 ,"subname":"thefirst"
 //       },
 //       {
-//        "username":"itsdun", "time": "Jul", "legend1" : 70.7, "legend2": 52.59,"legend3": 48.49
+//        "username":"itsdun", "time": "Jul", "legend1" : 70.7, "legend2": 52.59,"legend3": 48.49 ,"subname":"thefirst"
 //       },
 //       {
-//        "username":"itsdun", "time": "Aug", "legend1" : 66.72, "legend2": 47.54,"legend3": 57.54
+//        "username":"itsdun", "time": "Aug", "legend1" : 66.72, "legend2": 47.54,"legend3": 57.54 ,"subname":"thefirst"
 //       },
 //       {
-//        "username":"itsdun", "time": "Sept", "legend1" : 64.61, "legend2": 47.02,"legend3": 56.4
+//        "username":"itsdun", "time": "Sept", "legend1" : 64.61, "legend2": 47.02,"legend3": 56.4 ,"subname":"thesecond"
 //       }
 //     ]).then((data)=>{
 //         if(data)
@@ -77,12 +116,12 @@ app.use(function(req,res,next){
 //     })
 
 
-    // console.log("server is running");
+//     console.log("server is running");
 
 
-function getData(responceObj,username1)
-{
-hike.find({username:username1}).then((data)=>{
+function getData(responceObj,username1,active)
+{   console.log(active)
+hike.find({username:username1,subname:active}).then((data)=>{
     
     if(data)
     {
@@ -153,6 +192,7 @@ app.use('/public', express.static('public'));
 app.get("/",(req,res)=>{
 
 res.render("home.ejs")
+console.log(res.locals.getG)
 
 })
 
@@ -162,7 +202,7 @@ app.get('/getgraphs',(req,res)=>{
 
 app.get("/fuelPrices",isLoggedIn,(req,res)=>{
     
-   getData(res,res.locals.currentUser.username);
+   getData(res,res.locals.currentUser.username,res.locals.currentUser.currentActive);
 
 })
 
@@ -192,7 +232,8 @@ app.post("/register",(req,res)=>{
 
 
 app.get("/login",(req,res)=>{
-
+    console.log(res.locals.getG);
+    res.locals.getG = "aditya"
     res.render("login.ejs")
 })
 
@@ -227,11 +268,32 @@ passport.authenticate("local",(err,user,info)=>{
 
 })(req,res,next);
 });
-app.get("/secret",isLoggedIn,(req,res)=>{
+app.post("/secret",isLoggedIn,(req,res)=>{
     
+    // graph.find({username:"itsdun"}).then((data)=>{
+    //     if(data)
+    //     {
+    //         // console.log(data)
+    //     }
+    // }).catch((E)=>{
+    //     console.log(E)
+    // })
+    console.log(req.body.name + "ha ha ha")
+    User.findOneAndUpdate({username:res.locals.currentUser.username},{
+        $set:{currentActive:req.body.name}
+    }).then((data)=>{
 
-  
-    res.render("secret.ejs")
+        if(data)
+        {
+            console.log(data)
+        }
+    }).catch((E)=>{
+        console.log(E)
+    })
+    console.log(res.locals.currentUser.currentActive)
+
+    res.render("chart",{   username:res.locals.currentUser.username,
+                             id:res.locals.currentUser._id})
     
     })
 
@@ -244,42 +306,126 @@ app.get("/secret",isLoggedIn,(req,res)=>{
 
 app.get("/secret/:id",isLoggedIn,(req,res)=>{
 
+    active.find({username:res.locals.currentUser.username}).then((data)=>{
 
-    
-    User.findById(req.params.id).then((data)=>{
-        if(data)
-        {
-            var username1 = data.username;
-            // console.log(username1)
-            console.log(res.locals.currentUser.username)
-            hike.find({username:res.locals.currentUser.username}).then((data1)=>{
-                if(data1)
-                {   
-                    dataset = data1
-                    console.log(data1)
-                }
+            if(data[0].activeString == undefined || data[0].activeString.length == 0)
+            {
+                console.log("not present")
+                res.redirect("/secret/"+req.params.id+"/add")
+            }
+            else{
+                console.log(data)
+                res.render("dataShow.ejs",{data:data[0].activeString})
+            }
+
+
+    })
+
+
+
+    // User.findById(req.params.id).then((data)=>{
+    //     if(data)
+    //     {
+    //         var username1 = data.username;
+    //         // console.log(username1)
+    //         // console.log(res.locals.currentUser.username)
+    //         console.log(res.locals.currentUser)
+    //         hike.find({username:res.locals.currentUser.username}).then((data1)=>{
+    //             if(data1)
+    //             {   
+    //                 // dataset = data1
+    //                 // console.log(data1)
+    //             }
               
-            }).catch((e)=>{
-                console.log(e)
-                res.redirect("/")
-            })
-        }
+    //         }).catch((e)=>{
+    //             console.log(e)
+    //             res.redirect("/")
+    //         })
+    //     }
        
       
         
 
-    }).catch((e)=>{
-        console.log(e)
-        res.redirect("/")
-    })
-    console.log(req.params.id);
-    res.render("myprofile.ejs")
+    // }).catch((e)=>{
+    //     console.log(e)
+    //     res.redirect("/")
+    // })
+
+
+    // console.log(req.params.id);
+    // res.render("myprofile.ejs")
+
+//     graph.find({username:res.locals.currentUser.username}).then((data)=>{
+//         if(data){
+//             console.log(data)
+//             res.render("myprofile.ejs",{data:data[0].allGraphs,
+//             id:res.locals.currentUser._id
+//         })
+
+//         }
+
+
+// }).catch((e)=>{
+//     console.log(e)
+// })  
+
 
 })
 
 
+app.get("/secret/:id/add",(req,res)=>{
+
+    res.render("addData.ejs",{id:req.params.id})
+
+})
 
 
+app.post("/secret/:id/addN",(req,res)=>{
+    //  req.body.data
+        // console.log(data)
+        graph.insertMany({
+    username:res.locals.currentUser.username,
+    legend1_name:req.body.data.legend1_name,
+    legend2_name:req.body.data.legend2_name,
+    legend3_name:req.body.data.legend3_name,
+    length:req.body.data.number,
+    allGraphs:req.body.data.subname
+
+}).then((data)=>{
+    active.findOneAndUpdate(
+    { username: res.locals.currentUser.username }, 
+    { $push: { activeString: req.body.data.subname } },
+   function (error, success) {
+         if (error) {
+             console.log(error);
+         } else {
+             console.log(success);
+         }
+     });
+
+
+    if(data)
+    {
+        console.log(data)
+    }
+}).catch((e)=>{
+    console.log(e)
+})
+
+// graph.findOneAndUpdate(
+//     { username: res.locals.currentUser.username }, 
+//     { $push: { allGraphs: req.body.data.subname } },
+//    function (error, success) {
+//          if (error) {
+//              console.log(error);
+//          } else {
+//              console.log(success);
+//          }
+//      });
+
+     res.render("addNData.ejs")
+        
+})
 
 
 
