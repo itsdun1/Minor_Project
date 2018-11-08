@@ -1,0 +1,14 @@
+<form action="/secret/<%=id %>/add" method="POST">
+    <% for(var i=0;i<data.length ;i++){ %>
+
+        <input type="text" name=time[i]  placeholder="Time"><br>
+        <input type="number" name=legend1[i]  placeholder="Legend1 value" ><br>
+        <input type="number" name=legend2[i] placeholder="Legend1 value"><br>
+        <input type="number" name=legend3[i] placeholder="Legend1 value"><br>
+        
+
+
+        <% } %>
+        <input type="hidden" name="button2" value="<%=subname %>">
+        <input type="submit" name="button" value="<%= data.length %>" >
+</form>

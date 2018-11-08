@@ -1,6 +1,6 @@
 <% for( var i=0 ;i< data.length ;i++) { %>
     <form action="/secret" method="POST">
-    <button type="submit" name="name"  value=" <%= data[i] %>"  placeholder="<%= data[i] %>"> <%=data[i] %> </button>
+    <button type="submit" name="name" value="<%=data[i]%>" placeholder="<%=data[i]%>"><%=data[i]%></button>
     </form>
     <% } %>
 

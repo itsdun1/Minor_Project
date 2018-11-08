@@ -1,8 +1,15 @@
 var mongoose = require("mongoose")
+const arrayUniquePlugin = require('mongoose-unique-array');
+// var active = mongoose.model("active",{
+//     username:String,
+//     activeString:[{type:String,unique:true}]
+// })
 
-var active = mongoose.model("active",{
+var active = new mongoose.Schema({
     username:String,
-    activeString:[String]
+    activeString:[{type:String,unique:true}]
 })
 
-module.exports = {active}
+
+active.plugin(arrayUniquePlugin)
+module.exports = mongoose.model("active",active)

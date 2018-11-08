@@ -7,7 +7,7 @@ var passport = require("passport")
 var passportLocal = require("passport-local")
 var passportLocalMongo = require("passport-local-mongoose")
 var {graph} = require("./models/graph_info")
-var {active} = require("./models/activelist")
+var active = require("./models/activelist")
 var app = express();
 app.use(bodyParser.urlencoded({extended:true}));
 
@@ -120,12 +120,13 @@ app.use(function(req,res,next){
 
 
 function getData(responceObj,username1,active)
-{   console.log(active)
+{   console.log("hahaha"+active+"and thefirst")
+// console.log(active.toString)
 hike.find({username:username1,subname:active}).then((data)=>{
     
     if(data)
     {
-        // console.log(data)
+        console.log(data)
         var timeArray = []
         var legend1Prices = []
         var legend2Prices = [];
@@ -224,6 +225,7 @@ app.post("/register",(req,res)=>{
             return res.render("register.ejs")
         }
         passport.authenticate("local")(req,res,function(){
+            active.insertMany({username:req.body.username})
             res.redirect("/secret")
             
         })
@@ -279,6 +281,10 @@ app.post("/secret",isLoggedIn,(req,res)=>{
     //     console.log(E)
     // })
     console.log(req.body.name + "ha ha ha")
+
+
+
+
     User.findOneAndUpdate({username:res.locals.currentUser.username},{
         $set:{currentActive:req.body.name}
     }).then((data)=>{
@@ -286,14 +292,16 @@ app.post("/secret",isLoggedIn,(req,res)=>{
         if(data)
         {
             console.log(data)
+
+            res.render("chart",{   username:res.locals.currentUser.username,
+                id:res.locals.currentUser._id})
         }
     }).catch((E)=>{
         console.log(E)
     })
-    console.log(res.locals.currentUser.currentActive)
+    // console.log(res.locals.currentUser.currentActive)
 
-    res.render("chart",{   username:res.locals.currentUser.username,
-                             id:res.locals.currentUser._id})
+ 
     
     })
 
@@ -308,17 +316,20 @@ app.get("/secret/:id",isLoggedIn,(req,res)=>{
 
     active.find({username:res.locals.currentUser.username}).then((data)=>{
 
-            if(data[0].activeString == undefined || data[0].activeString.length == 0)
-            {
+            if(data[0].activeString && data[0].activeString.length)
+            {   
+                console.log(data)
+                res.render("dataShow.ejs",{data:data[0].activeString})
+              
+            }
+            else{
                 console.log("not present")
                 res.redirect("/secret/"+req.params.id+"/add")
             }
-            else{
-                console.log(data)
-                res.render("dataShow.ejs",{data:data[0].activeString})
-            }
 
 
+    }).catch((e)=>{
+        console.log(e)
     })
 
 
@@ -379,6 +390,35 @@ app.get("/secret/:id/add",(req,res)=>{
 
 })
 
+app.post("/secret/:id/add",(req,res)=>{
+    x=[]
+    console.log(req.body)
+        for(var j=0;j<req.body.button;j++)
+        {
+            var obj = {};
+
+                obj.username=res.locals.currentUser.username,
+                obj.time=req.body.time.i[j],
+                obj.legend1=req.body.legend1.i[j],
+                obj.legend2=req.body.legend2.i[j],
+                obj.legend3=req.body.legend3.i[j],
+                obj.subname=req.body.button2
+            x.push(obj)
+        }
+
+        console.log(x)
+
+        hike.insertMany(x).then((data)=>{
+            if(data)
+            {
+                console.log(data)
+            }
+        }).catch((e)=>{
+            console.log(e)
+        })
+
+})
+
 
 app.post("/secret/:id/addN",(req,res)=>{
     //  req.body.data
@@ -402,12 +442,11 @@ app.post("/secret/:id/addN",(req,res)=>{
              console.log(success);
          }
      });
+     console.log(data)
+     res.render("addNData.ejs",{data:data[0],
+    id:res.locals.currentUser._id,
+subname:req.body.data.subname})
 
-
-    if(data)
-    {
-        console.log(data)
-    }
 }).catch((e)=>{
     console.log(e)
 })
@@ -423,7 +462,7 @@ app.post("/secret/:id/addN",(req,res)=>{
 //          }
 //      });
 
-     res.render("addNData.ejs")
+    
         
 })
 
