@@ -1,11 +1,63 @@
+
+<% include partial/header.ejs %>
+
+<div class="container">
 <form action="/secret/<%=id%>/addN" method="POST">
-        <h4>enter the name of comparisions and the no f data fields</h4>
-        <input type="string" name="data[legend1_name]"  placeholder="Legend Name" >
-        <input type="string" name="data[legend2_name]"  placeholder="Legend Name" >
-        <input type="string" name="data[legend3_name]"  placeholder="Legend Name" >
-        <input type="string" name="data[subname]" placeholder="subgraphName" >
-        <input type="number" name="data[number]" placeholder="Length of data">
-        <input type="submit">
+        <div style="width:30%;  margin:25px auto;">
+        <h4>Enter the values</h4>
+        <div class="form-group">
+        <input type="string" name="data[legend1_name]" class="form-control"  placeholder="Legend Name" >
+        </div>
+        <div class="form-group">
+        <input type="string" name="data[legend2_name]" class="form-control" placeholder="Legend Name" >
+        </div>
+        <div class="form-group">
+        <input type="string" name="data[legend3_name]" class="form-control" placeholder="Legend Name" >
+        </div>
+        <div class="form-group">
+        <input type="string" name="data[subname]"  class="form-control" placeholder="subgraphName" >
+        </div>
+        <div class="form-group">
+        <select class="form-control" name="data[graph]" >
+                <option value="msline">msline</option>
+                <option value="mscolumn2d">mscolumn2d</option>
+                <option value="mscolumn3d">mscolumn3d</option>
+                <option value="line">line(single)</option>
+                <option value="bar2d">bar2d(single)</option>
+                <option value="bar3d">bar3d(single)</option>
+                <option value="pie2d">pie2d(single)</option>
+                <option value="pie3d">pie3d(single)</option>
+                <option value="doughnut2d">doughnut2d(single)</option>
+                <option value="doughnut3d">doughnut3d(single)</option>
+                <option value="msbar2d">msbar2d</option>
+                <option value="msbar3d">msbar3d</option>
+                <option value="msarea">msarea</option>
+                <option value="zoomline">zoomline</option>
+                <option value="zoomlinedy">zoomlinedy</option>
+                <option value="stackedcolumn2d">stackedcolumn2d</option>
+                <option value="stackedcolumn3d">stackedcolumn3d</option>
+
+
+        </select>
+        </div>
+        <div class="form-group">
+        <input type="text" class="form-control" name="data[number_prefix]" placeholder="Number prefix">
+        </div>
+        <div class="form-group">
+        <input type="text" name="data[xaxis]" class="form-control" placeholder="X-Axis Name">
+        </div>
+        <div class="form-group">
+        <input type="text" name="data[yaxis]" placeholder="Y-Axis Name" class="form-control">
+        </div>
+        <div class="form-group">
+        <input type="number" name="data[number]" placeholder="Length of data" class="form-control">
+        </div>
+        
+        <input type="submit" class="btn btn-lg btn-success" value="Submit">
+
+        </div>
 
 
 </form>
+</div>
+<% include partial/footer.ejs %>

@@ -1,6 +1,17 @@
+{{> hearderex}}
+
+
+
+
+ <div class="container">
+
+
+
+
+
 <div id="table-location">
 
-</div>
+</div> 
 <br/>
 <!-- Location where the chart will be added -->
 <div id="chart-location">
@@ -9,9 +20,14 @@
 <script id="tabular-template" type="text/html">
 
 
-<h1> welcone {{username}}</h1>
+
+<span>
+  <h1> welcone {{username}}</h1>
+  <button class="btn btn-success btn-lg"><a href={{link}}>All Graphs</a></button>
+</span>
 <h2>Tabular Data</h2>
-<table class="table table-bordered">
+<div class="table-responsive">
+<table class="table table-bordered table-hover table-dark">
   <thead>
     <tr>
       <td>Month</td>
@@ -27,6 +43,6 @@
     \{{/each}}
   </tbody>
 </table>
-
-
+</div>
+</div>
 </script>

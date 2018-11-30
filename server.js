@@ -10,8 +10,9 @@ var {graph} = require("./models/graph_info")
 var active = require("./models/activelist")
 var app = express();
 app.use(bodyParser.urlencoded({extended:true}));
-
-
+app.use(express.static(__dirname + "/public"));
+var flash = require("connect-flash")
+app.use(flash());
 
 app.use(require("express-session")({
     secret: "this the bad 2",
@@ -28,7 +29,8 @@ passport.deserializeUser(User.deserializeUser());
 
 app.use(function(req,res,next){
     res.locals.currentUser = req.user;
-    res.locals.getG = "aaaa"
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     
     next();
   })
@@ -119,14 +121,15 @@ app.use(function(req,res,next){
 //     console.log("server is running");
 
 
-function getData(responceObj,username1,active)
+function getData(responceObj,username1,active,leg1,leg2,leg3,type,prefix,x,y)
 {   console.log("hahaha"+active+"and thefirst")
 // console.log(active.toString)
+// console.log(type)
 hike.find({username:username1,subname:active}).then((data)=>{
     
     if(data)
     {
-        console.log(data)
+        // console.log(data)
         var timeArray = []
         var legend1Prices = []
         var legend2Prices = [];
@@ -164,9 +167,18 @@ hike.find({username:username1,subname:active}).then((data)=>{
         }
         ];
 
+        dataset[0].seriesname = leg1
+        dataset[1].seriesname = leg2
+        dataset[2].seriesname = leg3
+
         var response = {
           "dataset" : dataset,
-          "categories" : timeArray
+          "categories" : timeArray,
+          "subname":active,
+          "type":type,
+          "prefix":prefix,
+          "x":x,
+          "y":y
         };
 
         // console.log(response);
@@ -185,15 +197,22 @@ hike.find({username:username1,subname:active}).then((data)=>{
 
 var exphbs  = require('express-handlebars');
 
-app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.engine('handlebars', exphbs({defaultLayout: 'main',
+partialsDir: __dirname + '/views/partial/'}));
 app.set('view engine', 'handlebars');
 
 
 app.use('/public', express.static('public'));
+
 app.get("/",(req,res)=>{
+res.render("anim.ejs")
+
+
+})
+app.get("/graphs",(req,res)=>{
 
 res.render("home.ejs")
-console.log(res.locals.getG)
+// console.log(res.locals.getG)
 
 })
 
@@ -202,8 +221,17 @@ app.get('/getgraphs',(req,res)=>{
 })
 
 app.get("/fuelPrices",isLoggedIn,(req,res)=>{
+
+    graph.find({username:res.locals.currentUser.username,allGraphs:res.locals.currentUser.currentActive}).then((data)=>{
+        console.log(data)
+        getData(res,res.locals.currentUser.username,res.locals.currentUser.currentActive,data[0].legend1_name,data[0].legend2_name,data[0].legend3_name,data[0].graphType,data[0].numberprefix,data[0].xAxisName,data[0].yAxisName);
+
+    }).catch((E)=>{
+        req.flash("error",E)
+        console.log(E);
+    })
     
-   getData(res,res.locals.currentUser.username,res.locals.currentUser.currentActive);
+   
 
 })
 
@@ -222,11 +250,13 @@ app.post("/register",(req,res)=>{
         if(err)
         {
             console.log(err)
+            req.flash("error","user with same username already exist")
             return res.render("register.ejs")
         }
         passport.authenticate("local")(req,res,function(){
             active.insertMany({username:req.body.username})
-            res.redirect("/secret")
+            req.flash("success","successfully registered user")
+            res.redirect("/secret/"+data._id)
             
         })
     })
@@ -234,8 +264,8 @@ app.post("/register",(req,res)=>{
 
 
 app.get("/login",(req,res)=>{
-    console.log(res.locals.getG);
-    res.locals.getG = "aditya"
+    // console.log(res.locals.getG);
+    // res.locals.getG = "aditya"
     res.render("login.ejs")
 })
 
@@ -244,25 +274,30 @@ app.post("/login",(req,res,next)=>{
 passport.authenticate("local",(err,user,info)=>{
 
     if(err)
-    {
+    {   
+    
         return(next(err))
     }
     if(!user)
-    {
+    {   
+        req.flash("error","enter valid credentials")
         return res.redirect("/login")
     }
     req.logIn(user,function(err){
         if(err)
-        {
+        {   
+            req.flash("error",err)
             return next(err)
         }
         User.find({username:user.username}).then((data)=>{
             if(data)
             {
-                console.log(data)
+                // console.log(data)
+                req.flash("success","Logged in as "+user.username)
                 return res.redirect('/secret/'+data[0]._id)
             }
         }).catch((e)=>{
+            
             return next(e)
         })
         
@@ -280,7 +315,7 @@ app.post("/secret",isLoggedIn,(req,res)=>{
     // }).catch((E)=>{
     //     console.log(E)
     // })
-    console.log(req.body.name + "ha ha ha")
+    // console.log(req.body.name + "ha ha ha")
 
 
 
@@ -291,10 +326,11 @@ app.post("/secret",isLoggedIn,(req,res)=>{
 
         if(data)
         {
-            console.log(data)
+            // console.log(data)
 
             res.render("chart",{   username:res.locals.currentUser.username,
-                id:res.locals.currentUser._id})
+                id:res.locals.currentUser._id,
+            link:"/secret/"+res.locals.currentUser._id})
         }
     }).catch((E)=>{
         console.log(E)
@@ -307,7 +343,8 @@ app.post("/secret",isLoggedIn,(req,res)=>{
 
     app.get("/logout",(req,res)=>{
         req.logout();
-        res.redirect("/")
+        req.flash("success","Logged You Out");
+        res.redirect("/graphs")
     })
 
 
@@ -316,16 +353,20 @@ app.get("/secret/:id",isLoggedIn,(req,res)=>{
 
     active.find({username:res.locals.currentUser.username}).then((data)=>{
 
-            if(data[0].activeString && data[0].activeString.length)
+        console.log(data + "sakmdlasmdaskldalsmdasklcvmkalsmcdklklas")
+      if(data[0].activeString && data[0].activeString.length)
             {   
-                console.log(data)
-                res.render("dataShow.ejs",{data:data[0].activeString})
+                // console.log(data)
+                res.render("dataShow.ejs",{data:data[0].activeString,
+                username:data[0].username,
+            id:"/secret/"+res.locals.currentUser._id+"/add"})
               
             }
             else{
-                console.log("not present")
+                // console.log("not present")
                 res.redirect("/secret/"+req.params.id+"/add")
             }
+            
 
 
     }).catch((e)=>{
@@ -406,12 +447,15 @@ app.post("/secret/:id/add",(req,res)=>{
             x.push(obj)
         }
 
-        console.log(x)
+        // console.log(x)
 
         hike.insertMany(x).then((data)=>{
             if(data)
             {
-                console.log(data)
+                // console.log(data)
+                
+                res.redirect("/secret/"+res.locals.currentUser._id);
+
             }
         }).catch((e)=>{
             console.log(e)
@@ -429,7 +473,11 @@ app.post("/secret/:id/addN",(req,res)=>{
     legend2_name:req.body.data.legend2_name,
     legend3_name:req.body.data.legend3_name,
     length:req.body.data.number,
-    allGraphs:req.body.data.subname
+    allGraphs:req.body.data.subname,
+    graphType:req.body.data.graph,
+    numberprefix:req.body.data.number_prefix,
+    xAxisName:req.body.data.xaxis,
+    yAxisName:req.body.data.yaxis
 
 }).then((data)=>{
     active.findOneAndUpdate(
@@ -442,7 +490,7 @@ app.post("/secret/:id/addN",(req,res)=>{
              console.log(success);
          }
      });
-     console.log(data)
+    //  console.log(data)
      res.render("addNData.ejs",{data:data[0],
     id:res.locals.currentUser._id,
 subname:req.body.data.subname})

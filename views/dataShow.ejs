@@ -1,6 +1,67 @@
-<% for( var i=0 ;i< data.length ;i++) { %>
-    <form action="/secret" method="POST">
-    <button type="submit" name="name" value="<%=data[i]%>" placeholder="<%=data[i]%>"><%=data[i]%></button>
-    </form>
-    <% } %>
+<% include partial/header.ejs %>
+<div class="container">
 
+
+<div style="text-align: center ; margin-top: 20px; margin-bottom: 40px"  >
+
+    <p><h1> Welcome <%= username %></h1></p>
+    <p>
+       <h3> This are graphs you have created</h3>
+    </p>
+
+</div>
+
+<!--<h1> this is also connacted</h1>-->
+<div class="row text-center" style="display:flex ; flex-wrap:wrap">
+
+        <% for( var i=0 ;i< data.length ;i++) { %>
+        <div class="col-md-3 col-sm-6">
+        <div class="thumbnail">   
+        
+         <div class="caption">
+             <%= data[i] %>
+         </div>
+         <p>
+                <form action="/secret" method="POST">
+                    <button type="submit" class="btn btn-success btn-lg" name="name" value="<%=data[i]%>" ><%=data[i]%></button>
+                    </form>
+           
+         </p>
+         </div>
+         </div>
+        <%  }%>
+
+
+        
+        
+        </div>
+
+        <div class="thumbnail">
+
+            <button style="color: #ffffff; margin:auto;display:block" class="btn btn-default btn-lg "><a style="text-decoration:none; " href=<%= id %> </a> Create New Graph</button>
+
+        </div>
+ 
+    </div>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <% include partial/footer.ejs %>

@@ -6,7 +6,11 @@ var graph = mongoose.model("graph",{
     legend2_name:String,
     legend3_name:String,
     length:Number,
-    allGraphs:String
+    allGraphs:String,
+    graphType:String,
+    numberprefix:String,
+    xAxisName:String,
+    yAxisName:String
 })
 
 module.exports = {graph}
